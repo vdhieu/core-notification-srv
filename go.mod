@@ -3,12 +3,12 @@ module github.com/Neutronpay/core-notification-srv
 go 1.18
 
 require (
-	github.com/Neutronpay/lib-go-common v0.5.2
+	github.com/Neutronpay/lib-go-common v0.7.0
 	github.com/go-redis/redis/v8 v8.11.5
 	github.com/spf13/viper v1.14.0
 )
 
-replace github.com/Neutronpay/lib-go-common => ../lib-go-common
+// replace github.com/Neutronpay/lib-go-common => ../lib-go-common
 
 require (
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da // indirect
@@ -158,7 +158,7 @@ require (
 	github.com/gin-contrib/cors v1.4.0 // indirect
 	github.com/gin-contrib/pprof v1.4.0 // indirect
 	github.com/gin-gonic/gin v1.8.2
-	github.com/google/uuid v1.3.0 // indirect
+	github.com/google/uuid v1.3.0
 	github.com/hashicorp/hcl v1.0.0 // indirect
 	github.com/joho/godotenv v1.4.0 // indirect
 	github.com/lib/pq v1.10.7 // indirect
