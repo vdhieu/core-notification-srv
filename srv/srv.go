@@ -1,16 +1,16 @@
-package notifsrv 
+package notifsrv
 
 import (
 	"context"
 	"fmt"
+	"github.com/Neutronpay/core-notification-srv/config"
+	"github.com/Neutronpay/core-notification-srv/controller"
 	"github.com/Neutronpay/lib-go-common/comm/txncomm"
 	"github.com/Neutronpay/lib-go-common/conn/redis"
 	libparsers "github.com/Neutronpay/lib-go-common/dto/parsers"
 	"github.com/Neutronpay/lib-go-common/logger"
 	"github.com/Neutronpay/lib-go-common/route"
 	"github.com/Neutronpay/lib-go-common/store"
-	"github.com/Neutronpay/core-notification-srv/config"
-	"github.com/Neutronpay/core-notification-srv/controller"
 	"net/http"
 )
 
@@ -45,18 +45,23 @@ func NewSrv(cfg *config.Config, logger logger.Logger) (srv *templateSrv, err err
 	db := store.NewStore(&cfg.DBConf)
 
 	// TODO: THIS NEEDS TO BE CUSTOMIZED
-	ctrler, err := controller.NewController(logger, db, rd)
+	ctrler, err := controller.NewController(logger, db, rd, txnDtoTf)
 	if err != nil {
 		return nil, err
 	}
 
-	sch, err := controller.NewReqHander(srv, logger, cfg.Base, cfg.RmqConf, ctrler, txnDtoTf)
+	_, err = txncomm.NewTxnStatusUpdateListener(cfg.RmqConf, cfg.Base.Name, ctrler)
+	if err != nil {
+		return nil, err
+	}
+
+	/*sch, err := controller.NewReqHander(srv, logger, cfg.Base, cfg.RmqConf, ctrler, txnDtoTf)
 	if err != nil {
 		return nil, err
 	}
 
 	srv.txnCommHandler = sch
-
+	*/
 	// setting up http server   TODO: ALSO NEED TO BE CUSTOMIZED
 	var jwtSecret = []byte(cfg.JwtSecret)
 	router := route.NewRoutes(controller.NewHttpRouteHandler(cfg.Base, srv.Logger(), txnDtoTf), jwtSecret)
@@ -82,7 +87,7 @@ func setupDtoTransformer() (t libparsers.TxnDtoTransformer, err error) {
 	}
 
 	// move all these to app (trx srv, etc)
-	destMarshaller := &libparsers.TerrapayDestLegMarshaller{}
+	destMarshaller := &libparsers.TxnStatusMarshaller{}
 	err = tt.Register(destMarshaller)
 	if err != nil {
 		return nil, err
