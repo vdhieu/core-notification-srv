@@ -24,10 +24,10 @@ type templateSrv struct {
 	// 	execPool           queue.ThreadedExecutorPool   // we might need to do this sooner than later
 }
 
-// NewSrv
+// New
 // creates a new Template service, please note the http server is NOT being used here until we change the restful endpoints
 // to be created and managed here.
-func NewSrv(cfg *config.Config, logger logger.Logger) (srv *templateSrv, err error) {
+func New(cfg *config.Config, logger logger.Logger) (srv *templateSrv, err error) {
 
 	srv = &templateSrv{
 		name:   cfg.Base.Name,

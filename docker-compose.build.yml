@@ -1,8 +1,0 @@
-version: "3.7"
-
-services:
-  rabbitmq:
-    image: registry.digitalocean.com/np-rabbitmq
-    build:
-      context: ./rabbitmq
-      dockerfile: Dockerfile

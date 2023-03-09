@@ -39,7 +39,7 @@ func (s store) Update(ctx context.Context, webhookModel model.WebhookInfo, Webho
 	return s.db.WithContext(ctx).Exec(`
 		UPDATE
 			webhook_infos
-	 	SET	
+		SET	
 			callback_url = @callback_url,
 			secret = pgp_sym_encrypt(@secret, @secret_key)
 		WHERE
