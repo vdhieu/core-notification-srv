@@ -4,8 +4,11 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
+
 	"github.com/Neutronpay/core-notification-srv/dto/extdto"
 	"github.com/Neutronpay/core-notification-srv/entity"
+	"github.com/Neutronpay/core-notification-srv/store"
 	"github.com/Neutronpay/lib-go-common/comm/txncomm"
 	"github.com/Neutronpay/lib-go-common/conn/rabbitmq"
 	"github.com/Neutronpay/lib-go-common/dto/cmddto"
@@ -13,10 +16,8 @@ import (
 	libparsers "github.com/Neutronpay/lib-go-common/dto/parsers"
 	"github.com/Neutronpay/lib-go-common/logger"
 	"github.com/Neutronpay/lib-go-common/signature"
-	"github.com/Neutronpay/lib-go-common/store"
 	"github.com/go-redis/redis/v8"
 	"github.com/google/uuid"
-	"io"
 
 	"io/ioutil"
 	"net/http"
@@ -26,7 +27,7 @@ type Controller struct {
 	logger       logger.Logger
 	txnStatusPub txncomm.TxnStatusPublisher
 	//
-	dbStore     *store.Store
+	dbStore     store.Store
 	redisClient *redis.Client
 
 	dtoParser libparsers.TxnDtoTransformer
@@ -37,7 +38,7 @@ type Controller struct {
 	rabbitmq.MessageRespHandler
 }
 
-func NewController(logger logger.Logger, db *store.Store, redisClient *redis.Client, dtoParser libparsers.TxnDtoTransformer) (*Controller, error) {
+func NewController(logger logger.Logger, db store.Store, redisClient *redis.Client, dtoParser libparsers.TxnDtoTransformer) (*Controller, error) {
 	return &Controller{
 		logger:      logger,
 		dbStore:     db,

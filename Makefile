@@ -20,9 +20,15 @@ dev:
 	air
 
 .PHONY: migrate-new
-## migrate-new: Create new migration file
+## migrate-new: Create new manual migration file
 migrate-new:
-	atlas migrate apply --env=${env}
+	atlas migrate new \
+	${name}
+
+.PHONY: migrate-hash
+migrate-hash:
+## migrate-hash: Create checksum hash for manual migration file
+	atlas migrate hash
 
 .PHONY: migrate-up
 ## migrate-up: Run migration

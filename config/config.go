@@ -2,6 +2,7 @@ package config
 
 import (
 	"fmt"
+
 	libconfig "github.com/Neutronpay/lib-go-common/config"
 	logger "github.com/Neutronpay/lib-go-common/logger"
 
@@ -9,11 +10,12 @@ import (
 )
 
 type Config struct {
-	Base      libconfig.BaseConfig   `json:"base"`
-	DBConf    libconfig.DBConn       `json:"dbconf"`
-	RmqConf   libconfig.RabbitMqConn `json:"rmqconf"`
-	RedisConf libconfig.RedisConn    `json:"redisconf"`
-	JwtSecret string                 `json:"jwtSecret"`
+	Base          libconfig.BaseConfig   `json:"base"`
+	DBConf        libconfig.DBConn       `json:"dbconf"`
+	RmqConf       libconfig.RabbitMqConn `json:"rmqconf"`
+	RedisConf     libconfig.RedisConn    `json:"redisconf"`
+	JwtSecret     string                 `json:"jwtSecret"`
+	WebhookSecret string                 `json:"webhookSecret"`
 }
 
 var config *viper.Viper
@@ -33,7 +35,7 @@ func Init(env string) *Config {
 
 	err = config.ReadInConfig()
 	if err != nil {
-		log.Errorf(err,"error on parsing configuration file, %s", err.Error())
+		log.Errorf(err, "error on parsing configuration file, %s", err.Error())
 	}
 	err = config.Unmarshal(&c)
 	if err != nil {
@@ -61,6 +63,7 @@ func Init(env string) *Config {
 	c.RedisConf.DB = config.GetInt("REDIS_DB")
 	c.RedisConf.SSL = config.GetBool("REDIS_SSL")
 	c.JwtSecret = config.GetString("JWT_SECRET")
+	c.WebhookSecret = config.GetString("WEBHOOK_SECRET")
 
 	return &c
 }
