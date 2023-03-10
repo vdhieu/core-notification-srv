@@ -8,7 +8,8 @@ require (
 	github.com/spf13/viper v1.14.0
 )
 
-// replace github.com/Neutronpay/lib-go-common => ../lib-go-common
+// [DEVELOPMENT ONLY] uncomment this on local if needed
+replace github.com/Neutronpay/lib-go-common => ../lib-go-common
 
 require (
 	github.com/aead/chacha20 v0.0.0-20180709150244-8b13a72661da // indirect

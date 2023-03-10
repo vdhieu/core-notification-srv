@@ -3,15 +3,16 @@ package notifsrv
 import (
 	"context"
 	"fmt"
+	"net/http"
+
 	"github.com/Neutronpay/core-notification-srv/config"
 	"github.com/Neutronpay/core-notification-srv/controller"
+	"github.com/Neutronpay/core-notification-srv/store"
 	"github.com/Neutronpay/lib-go-common/comm/txncomm"
 	"github.com/Neutronpay/lib-go-common/conn/redis"
 	libparsers "github.com/Neutronpay/lib-go-common/dto/parsers"
 	"github.com/Neutronpay/lib-go-common/logger"
 	"github.com/Neutronpay/lib-go-common/route"
-	"github.com/Neutronpay/lib-go-common/store"
-	"net/http"
 )
 
 type templateSrv struct {
@@ -23,10 +24,10 @@ type templateSrv struct {
 	// 	execPool           queue.ThreadedExecutorPool   // we might need to do this sooner than later
 }
 
-// NewSrv
+// New
 // creates a new Template service, please note the http server is NOT being used here until we change the restful endpoints
 // to be created and managed here.
-func NewSrv(cfg *config.Config, logger logger.Logger) (srv *templateSrv, err error) {
+func New(cfg *config.Config, logger logger.Logger) (srv *templateSrv, err error) {
 
 	srv = &templateSrv{
 		name:   cfg.Base.Name,
@@ -42,10 +43,11 @@ func NewSrv(cfg *config.Config, logger logger.Logger) (srv *templateSrv, err err
 
 	rd := redis.ConnectRedis(context.Background(), cfg.RedisConf)
 	// database
-	db := store.NewStore(&cfg.DBConf)
+	db := store.ConnDb(cfg)
+	store := store.New(db, cfg)
 
 	// TODO: THIS NEEDS TO BE CUSTOMIZED
-	ctrler, err := controller.NewController(logger, db, rd, txnDtoTf)
+	ctrler, err := controller.NewController(logger, store, rd, txnDtoTf)
 	if err != nil {
 		return nil, err
 	}
@@ -64,7 +66,7 @@ func NewSrv(cfg *config.Config, logger logger.Logger) (srv *templateSrv, err err
 	*/
 	// setting up http server   TODO: ALSO NEED TO BE CUSTOMIZED
 	var jwtSecret = []byte(cfg.JwtSecret)
-	router := route.NewRoutes(controller.NewHttpRouteHandler(cfg.Base, srv.Logger(), txnDtoTf), jwtSecret)
+	router := route.NewRoutes(controller.NewHttpRouteHandler(*cfg, store, srv.Logger(), txnDtoTf), jwtSecret)
 
 	srv.logger.Infof("Starting server: %#v", cfg.Base)
 
