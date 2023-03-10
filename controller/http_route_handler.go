@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"errors"
 	"net/http"
 	"time"
 
@@ -104,7 +105,7 @@ func (h *notiHttpRouteHandler) CreateWebHookHandler(ctx *gin.Context) {
 
 	var webhookModel webhook.CreateWebHookReq
 	if err = ctx.ShouldBindJSON(&webhookModel); err != nil {
-		log.Error(err, "notiHttpRouteHandler.CreateWebHookHandler")
+		log.Error(err, "ctx.ShouldBindJSON")
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "failed to parse request body"})
 		return
 	}
@@ -117,7 +118,7 @@ func (h *notiHttpRouteHandler) CreateWebHookHandler(ctx *gin.Context) {
 	}
 	res, err := h.store.Webhook().Create(ctx, newWebhook, h.cfg.WebhookSecret)
 	if err != nil {
-		log.Error(err, "notiHttpRouteHandler.CreateWebHookHandler")
+		log.Error(err, "h.store.Webhook.Create")
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to create webhook"})
 		return
 	}
@@ -130,14 +131,14 @@ func (h *notiHttpRouteHandler) GetWebHookHandler(ctx *gin.Context) {
 	})
 	jwtPayload, err := jwt.GetPayloadFromContext(ctx)
 	if err != nil {
-		log.Error(err, "notiHttpRouteHandler.GetWebHookHandler")
+		log.Error(err, "jwt.GetPayloadFromContext")
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "no auth info provided"})
 		return
 	}
 
 	res, err := h.store.Webhook().GetAllByAccountID(ctx, jwtPayload.AccountID, h.cfg.WebhookSecret)
 	if err != nil {
-		log.Error(err, "notiHttpRouteHandler.GetWebHookHandler")
+		log.Error(err, "h.store.Webhook.GetAllByAccountID")
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to get webhooks"})
 		return
 	}
@@ -151,21 +152,21 @@ func (h *notiHttpRouteHandler) UpdateWebHookHandler(ctx *gin.Context) {
 
 	jwtPayload, err := jwt.GetPayloadFromContext(ctx)
 	if err != nil {
-		log.Error(err, "notiHttpRouteHandler.UpdateWebHookHandler")
+		log.Error(err, "jwt.GetPayloadFromContext")
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "no auth info provided"})
 		return
 	}
 
 	webhookID := ctx.Param("id")
 	if webhookID == "" {
-		log.Error(err, "notiHttpRouteHandler.UpdateWebHookHandler")
+		log.Error(err, "ctx.Param")
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no webhook id provided"})
 		return
 	}
 
 	var webhookModel webhook.UpdateWebHookReq
 	if err = ctx.ShouldBindJSON(&webhookModel); err != nil {
-		log.Error(err, "notiHttpRouteHandler.UpdateWebHookHandler")
+		log.Error(err, "ctx.ShouldBindJSON")
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "failed to parse request body"})
 		return
 	}
@@ -173,14 +174,14 @@ func (h *notiHttpRouteHandler) UpdateWebHookHandler(ctx *gin.Context) {
 	// get webhook info from db
 	webhook, err := h.store.Webhook().GetOneByID(ctx, webhookID)
 	if err != nil {
-		log.Error(err, "notiHttpRouteHandler.UpdateWebHookHandler")
+		log.Error(err, "h.store.Webhook.GetOneByID")
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to get webhook"})
 		return
 	}
 
 	// check if the webhook belongs to the user
 	if webhook.AccountID != jwtPayload.AccountID {
-		log.Error(err, "wrong account id")
+		log.Error(errors.New("unauthorized account id"), "unauthorized account id")
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
@@ -190,7 +191,7 @@ func (h *notiHttpRouteHandler) UpdateWebHookHandler(ctx *gin.Context) {
 	webhook.Secret = webhookModel.Secret
 
 	if err = h.store.Webhook().Update(ctx, *webhook, h.cfg.WebhookSecret); err != nil {
-		log.Error(err, "notiHttpRouteHandler.UpdateWebHookHandler")
+		log.Error(err, "h.store.Webhook.Update")
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to update webhook"})
 		return
 	}
@@ -200,19 +201,19 @@ func (h *notiHttpRouteHandler) UpdateWebHookHandler(ctx *gin.Context) {
 
 func (h *notiHttpRouteHandler) DeleteWebHookHandler(ctx *gin.Context) {
 	log := h.logger.Fields(logger.Fields{
-		"func": "notiHttpRouteHandler.UpdateWebHookHandler",
+		"func": "notiHttpRouteHandler.DeleteWebHookHandler",
 	})
 
 	jwtPayload, err := jwt.GetPayloadFromContext(ctx)
 	if err != nil {
-		log.Error(err, "notiHttpRouteHandler.DeleteWebHookHandler")
+		log.Error(err, "jwt.GetPayloadFromContext")
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "no auth info provided"})
 		return
 	}
 
 	webhookID := ctx.Param("id")
 	if webhookID == "" {
-		log.Error(err, "notiHttpRouteHandler.DeleteWebHookHandler")
+		log.Error(err, "ctx.Param")
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "no webhook id provided"})
 		return
 	}
@@ -220,20 +221,20 @@ func (h *notiHttpRouteHandler) DeleteWebHookHandler(ctx *gin.Context) {
 	// get webhook info from db
 	webhook, err := h.store.Webhook().GetOneByID(ctx, webhookID)
 	if err != nil {
-		log.Error(err, "notiHttpRouteHandler.DeleteWebHookHandler")
+		log.Error(err, "h.store.Webhook.GetOneByID")
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to get webhook"})
 		return
 	}
 
 	// check if the webhook belongs to the user
 	if webhook.AccountID != jwtPayload.AccountID {
-		log.Error(err, "notiHttpRouteHandler.DeleteWebHookHandler")
+		log.Error(errors.New("unauthorized account id"), "unauthorized account id")
 		ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "unauthorized"})
 		return
 	}
 
 	if err = h.store.Webhook().Delete(ctx, webhook); err != nil {
-		log.Error(err, "notiHttpRouteHandler.DeleteWebHookHandler")
+		log.Error(err, "h.store.Webhook.Delete")
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "failed to delete webhook"})
 		return
 	}
